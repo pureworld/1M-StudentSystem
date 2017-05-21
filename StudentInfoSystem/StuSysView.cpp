@@ -13,15 +13,15 @@ CStuSysView::~CStuSysView() {
 void CStuSysView::MainLoop() {
     while (true) {
         system("cls");
-        cout << "1.随机初始化数据(耗时太久功能关闭)" << endl;
+        cout << "1.随机初始化数据(耗时较久)" << endl;
         cout << "2.从已有数据中读取" << endl;
         cout << "输入数字选择功能(“*”退出，“#”返回上一层)：";
         char c;
         cin >> c;
         switch (c) {
         case '1':
-            //Init();
-            //MainLoop2();
+            Init();
+            MainLoop2();
             break;
         case '2':
             ReadFile();
@@ -70,8 +70,6 @@ void CStuSysView::MainLoop2() {
             SecLoop5();
             break;
         case '*':
-            exit(0);
-            break;
         case '#':
             exit(0);
             break;
@@ -121,8 +119,8 @@ void CStuSysView::SecLoop2() {
         system("cls");
         cout << "1.通过学生ID查询姓名和所有选课记录" << endl;
         cout << "2.通过姓名查询所有同名学生的ID和姓名" << endl;
-        cout << "3.通过课程ID查询所有选课学生和成绩：暂未实现" << endl;
-        cout << "4.通过课程名查询所有选课学生和成绩：暂未实现" << endl;
+        cout << "3.通过课程ID查询所有选课学生和成绩(平均1000条)" << endl;
+        cout << "4.通过课程名查询课程ID" << endl;
         cout << "输入数字选择功能(“*”退出，“#”返回上一层)：";
         char c;
         cin >> c;
@@ -144,6 +142,7 @@ void CStuSysView::SecLoop2() {
             int id;
             cin >> id;
             m_Course.QueryById(id);
+            m_Record.QueryByCourseId(id);
             break;
         case '4':
             {
@@ -279,7 +278,14 @@ void CStuSysView::SecLoop4() {
                 break;
             }
         case '5':
-            break;
+            {
+                int stuId;
+                int courseId;
+                int curScore;
+                cin >> stuId >> courseId >> curScore;
+                m_Record.ModifyScore(stuId, courseId, curScore);
+                break;
+            }
         case '*':
             exit(0);
             break;
@@ -308,22 +314,41 @@ void CStuSysView::SecLoop5() {
             {
 	            int id;
 	            cin >> id;
-	            if (m_Stu.Delete(id)) {
-	                cout << "删除成功！" << endl;
-	            }
+                if (m_Record.HasStu(id)) {
+                    cout << "该学生还有选课记录，无法直接删除！" << endl;
+                } else {
+	                if (m_Stu.Delete(id)) {
+	                    cout << "删除成功！" << endl;
+	                }
+                }
 	            break;
             }
         case '2':
             {
                 int id;
                 cin >> id;
-                if (m_Course.Delete(id)) {
-                    cout << "删除成功！" << endl;
+                if (m_Record.HasCourse(id)) {
+                    cout << "该课程还有学生选课，无法直接删除！" << endl;
+                } else {
+                    if (m_Course.Delete(id)) {
+                        cout << "删除成功！" << endl;
+                    }
                 }
                 break;
             }
         case '3':
-            break;
+            {
+                int stuId;
+                int courseId;
+                cin >> stuId >> courseId;
+                if (!m_Stu.Has_It(stuId)) {
+                    cout << "无该学生信息！" << endl;
+                }
+                if (m_Record.Delete(stuId, courseId)) {
+                    cout << "删除成功！" << endl;
+                }
+                break;
+            }
         case '*':
             exit(0);
             break;
@@ -347,5 +372,5 @@ void CStuSysView::Init() {
 void CStuSysView::ReadFile() {
     m_Stu.ReadFile();
     m_Course.ReadFile();
-    m_Record.ReadIndex();
+    m_Record.ReadFile();
 }

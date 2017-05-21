@@ -11,9 +11,21 @@ public:
     ~CRecordManage(void);
 
     void Init();
-    void ReadIndex();
     void ReadFile();
     void WriteFile();
+
+    bool HasStu(int stuId) {
+        if (m_stuTree.Find(stuId) == NULL) {
+            return false;
+        }
+        return true;
+    }
+    bool HasCourse(int courseId) {
+        if (m_courseTree.Find(courseId) == NULL) {
+            return false;
+        }
+        return true;
+    }
 
     void ShowAll();
 
@@ -26,8 +38,6 @@ public:
 
     bool Delete(int stuId, int courseId);
 private:
-    int m_index[10];
-    int m_nIndex;
     CMyTree<int, CRecordInfo> m_stuTree;
     CMyTree<int, CRecordInfo> m_courseTree;
 };

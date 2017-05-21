@@ -5,7 +5,6 @@
 
 CRecordManage::CRecordManage(void)
 {
-    m_nIndex = -1;
 }
 
 
@@ -24,41 +23,29 @@ void CRecordManage::Init() {
         courseId[i] = 58000000 + i;
     }
 
-    for (int i = 0; i < 100000; i++) {
+    for (int iii = 0; iii < 100000; iii++) {
+        int sign[COURSE_NUMBER] = {0};
         for (int j = 0; j < 10; j++) {
+            int courseIndex = rand() % COURSE_NUMBER;
+            while (sign[courseIndex] == 1) {
+                courseIndex++;
+            }
+            sign[courseIndex] = 1;
             int score = rand() % 101;
-            CRecordInfo tmp(stuId[i], courseId[j], score);
-            m_stuTree.InsertNode(stuId[i], tmp);
-            m_courseTree.InsertNode(courseId[j], tmp);   
+            CRecordInfo tmp(stuId[iii], courseId[courseIndex], score);
+            m_stuTree.InsertNode(stuId[iii], tmp);
+            m_courseTree.InsertNode(courseId[courseIndex], tmp);  
         }
+        cout << iii << endl;
     }
 
     WriteFile();
 }
 
-void CRecordManage::ReadIndex() {
-    ifstream in("record.data", ios::in);
-    for (int i = 0; i < 10; i++) {
-        in >> m_index[i];
-    }
-}
-
 void CRecordManage::ReadFile() {
-    char* file[10] = {
-        "record1.data",
-        "record2.data",
-        "record3.data",
-        "record4.data",
-        "record5.data",
-        "record6.data",
-        "record7.data",
-        "record8.data",
-        "record9.data",
-        "record10.data",
-    };
     m_stuTree.Clear();
     m_courseTree.Clear();
-    ifstream in(file[m_nIndex], ios::in);
+    ifstream in("record.data", ios::in);
     CRecordInfo tmp;
     while (!in.eof()) {
         int stuId, courseId, score = -1;
@@ -73,19 +60,7 @@ void CRecordManage::ReadFile() {
 }
 
 void CRecordManage::WriteFile() {
-    char* file[10] = {
-        "record1.data",
-        "record2.data",
-        "record3.data",
-        "record4.data",
-        "record5.data",
-        "record6.data",
-        "record7.data",
-        "record8.data",
-        "record9.data",
-        "record10.data",
-    };
-    m_stuTree.OutputFile(file[m_nIndex]);
+    m_stuTree.OutputFile("record.data");
 }
 
 void CRecordManage::ShowAll() {
@@ -93,32 +68,23 @@ void CRecordManage::ShowAll() {
 }
 
 void CRecordManage::QueryByStuId(int id) {
-    for (int i = 9; i >= 0; i--) {
-        if (id > m_index[i]) {
-            m_nIndex = i;
-            break;
-        }
-    }
-    ReadFile();
     TreeNode<int, CRecordInfo>* pNode = m_stuTree.Find(id);
-    cout << "选课记录如下" << endl;
+    cout << "选课记录如下：" << endl;
     while (pNode != NULL) {
         cout << pNode->m_Value << endl;
         pNode = pNode->m_pNext;
     }
 }
 void CRecordManage::QueryByCourseId(int id) {
-
+    TreeNode<int, CRecordInfo>* pNode = m_courseTree.Find(id);
+    cout << "选则该课学生如下：" << endl;
+    while (pNode != NULL) {
+        cout << pNode->m_Value << endl;
+        pNode = pNode->m_pNext;
+    }
 }
 
 bool CRecordManage::Add(int stuId, int courseId, int score) {
-    for (int i = 9; i >= 0; i--) {
-        if (stuId > m_index[i]) {
-            m_nIndex = i;
-            break;
-        }
-    }
-    ReadFile();
     CRecordInfo tmp(stuId, courseId, score);
     m_stuTree.InsertNode(stuId, tmp);
     m_courseTree.InsertNode(courseId, tmp);
@@ -127,11 +93,28 @@ bool CRecordManage::Add(int stuId, int courseId, int score) {
 }
 
 bool CRecordManage::ModifyScore(int stuId, int courseId, int score) {
-    return false;
-
+    bool bRet = false;
+    if (Delete(stuId, courseId)) {
+        bRet = Add(stuId, courseId, score);
+    }
+    return bRet;
 }
 
 bool CRecordManage::Delete(int stuId, int courseId) {
-    return false;
-
+    int find = 0;
+    TreeNode<int, CRecordInfo>* pNode = m_stuTree.Find(stuId);
+    while (pNode != NULL) {
+        if (pNode->m_Value.GetCourseId() == courseId) {
+            find = 1;
+            break;
+        }
+        pNode = pNode->m_pNext;
+    }
+    if (find == 0) {
+        cout << "该学生未选该课！" << endl;
+    }
+    m_stuTree.DeleteNode(stuId, pNode->m_Value);
+    m_courseTree.DeleteNode(courseId, pNode->m_Value);
+    WriteFile();
+    return true;
 }
